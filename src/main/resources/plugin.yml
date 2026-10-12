@@ -1,0 +1,13 @@
+name: SupplyCrates
+version: 1.0.0
+main: net.viraxis.supplycrates.SupplyCratesPlugin
+api-version: '1.21'
+authors: [Viraxis]
+depend: [MassiveCore, WorldGuard, Holograms]
+commands:
+  supplycrate:
+    aliases: [supplycrates, envoy]
+    permission: supplycrates.admin
+permissions:
+  supplycrates.admin:
+    default: op
