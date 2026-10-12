@@ -2,6 +2,8 @@ package net.viraxis.supplycrates.manager;
 
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.util.Feedback;
+import com.massivecraft.massivecore.util.ActionFeedback;
+import com.massivecraft.massivecore.util.SoundBuilder;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
@@ -34,6 +36,7 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -80,7 +83,7 @@ public final class SupplyCrateManager extends Engine {
             location.getWorld().spawnParticle(Particle.SMOKE, location.clone().add(.5, .55, .5), 20, .25, .25, .25, .05);
         }
         if (expiresAt != null && !now.isBefore(expiresAt)) {
-            broadcast("&c<#E76A6A>The Supply Crate disappeared before anyone broke it open.");
+            broadcastAnnouncement(conf.expiredAnnouncement, Sound.BLOCK_END_PORTAL_SPAWN, .65F, .75F, null);
             remove(true);
             return;
         }
@@ -116,7 +119,7 @@ public final class SupplyCrateManager extends Engine {
         } else {
             land();
         }
-        broadcast("&6<#E69A30><bold>SUPPLY CRATE</bold>&6<#E69A30>: &e<#F4D35E>A Supply Crate has appeared in the Warzone! Break it open before it disappears.");
+        broadcastAnnouncement(conf.spawnAnnouncement, Sound.ENTITY_ENDER_DRAGON_GROWL, .65F, 1.35F, null);
         return true;
     }
 
@@ -166,6 +169,18 @@ public final class SupplyCrateManager extends Engine {
         location.getWorld().spawnParticle(Particle.CRIT, location.clone().add(.5, .8, .5), 8, .35, .35, .35, .08);
         player.playSound(location, Sound.BLOCK_WOOD_HIT, .8f, 1.15f + random.nextFloat() * .35f);
         if (hitsRemaining <= 0) claim(player); else updateHologram();
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (location == null) return;
+        UUID eventId = event.getPlayer().getUniqueId();
+        Bukkit.getScheduler().runTaskLater(SupplyCratesPlugin.get(), () -> {
+            Player player = Bukkit.getPlayer(eventId);
+            if (player == null || !player.isOnline() || location == null) return;
+            sendAnnouncement(player, SupplyCratesConf.get().joinReminder,
+                    new SoundBuilder(Sound.BLOCK_NOTE_BLOCK_BELL, .8F, 1.25F), null);
+        }, 40L);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -226,7 +241,7 @@ public final class SupplyCrateManager extends Engine {
         firework(effect, 0);
         effect.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, effect, 60, .7, 1, .7, .15);
         effect.getWorld().playSound(effect, Sound.ENTITY_PLAYER_LEVELUP, 1.2f, 1.15f);
-        broadcast("&6<#E69A30><bold>SUPPLY CRATE</bold>&6<#E69A30>: &f<#F5F5F5>" + player.getName() + " &e<#F4D35E>broke open the Supply Crate!");
+        broadcastAnnouncement(SupplyCratesConf.get().claimedAnnouncement, Sound.ENTITY_FIREWORK_ROCKET_BLAST, .9F, 1.1F, player.getName());
         remove(true);
     }
 
@@ -337,7 +352,19 @@ public final class SupplyCrateManager extends Engine {
         return first.getWorld() != null && first.getWorld().equals(second.getWorld())
                 && first.getBlockX() == second.getBlockX() && first.getBlockY() == second.getBlockY() && first.getBlockZ() == second.getBlockZ();
     }
-    private static void broadcast(String message) {
-        for (Player player : Bukkit.getOnlinePlayers()) Feedback.send(player, Feedback.info(message));
+    private void broadcastAnnouncement(List<String> lines, Sound sound, float volume, float pitch, String winner) {
+        SoundBuilder audio = new SoundBuilder(sound, volume, pitch);
+        for (Player player : Bukkit.getOnlinePlayers()) sendAnnouncement(player, lines, audio, winner);
+    }
+
+    private void sendAnnouncement(Player player, List<String> lines, SoundBuilder sound, String winner) {
+        if (lines == null || lines.isEmpty() || location == null) return;
+        List<String> rendered = lines.stream().map(line -> line
+                .replace("<x>", String.valueOf(location.getBlockX()))
+                .replace("<y>", String.valueOf(location.getBlockY()))
+                .replace("<z>", String.valueOf(location.getBlockZ()))
+                .replace("<hits>", String.valueOf(hitsRemaining))
+                .replace("<player>", winner == null ? "Unknown" : winner)).toList();
+        Feedback.send(player, new ActionFeedback(rendered, null, sound));
     }
 }

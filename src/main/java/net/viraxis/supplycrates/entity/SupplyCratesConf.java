@@ -38,6 +38,29 @@ public class SupplyCratesConf extends Entity<SupplyCratesConf> {
             "&6<#E69A30><bold>✧ &e<#F4D35E>SUPPLY CRATE &6<#E69A30>✧",
             "&f<#F5F5F5><hits> &7<#B0B0B0>hits remaining",
             "&7<#B0B0B0>Break it open to claim the rewards!"));
+    public List<String> spawnAnnouncement = new ArrayList<>(List.of(
+            "",
+            "<center>&6<#E69A30><bold>✦ SUPPLY DROP INBOUND ✦</bold></center>",
+            "<center>&f<#F5F5F5>A Supply Crate is descending into the &c<#E76A6A>Warzone&f<#F5F5F5>.</center>",
+            "<center>&7<#B0B0B0>Follow the &b<#66D9E8>blue signal&7<#B0B0B0> and break it open for loot.</center>",
+            "<center>&8<#666666>X: &f<#F5F5F5><x> &8<#666666>• Z: &f<#F5F5F5><z> &8<#666666>• &f<#F5F5F5><hits> hits</center>",
+            ""));
+    public List<String> joinReminder = new ArrayList<>(List.of(
+            "",
+            "<center>&6<#E69A30><bold>✦ UNCLAIMED SUPPLY DROP ✦</bold></center>",
+            "<center>&7<#B0B0B0>A Supply Crate is still waiting in the &c<#E76A6A>Warzone&7<#B0B0B0>.</center>",
+            "<center>&8<#666666>X: &f<#F5F5F5><x> &8<#666666>• Z: &f<#F5F5F5><z> &8<#666666>• &f<#F5F5F5><hits> hits remaining</center>",
+            ""));
+    public List<String> claimedAnnouncement = new ArrayList<>(List.of(
+            "",
+            "<center>&6<#E69A30><bold>✦ SUPPLY DROP CLAIMED ✦</bold></center>",
+            "<center>&f<#F5F5F5><player> &7<#B0B0B0>broke open the Supply Crate and claimed its loot.</center>",
+            ""));
+    public List<String> expiredAnnouncement = new ArrayList<>(List.of(
+            "",
+            "<center>&c<#E76A6A><bold>✦ SUPPLY DROP LOST ✦</bold></center>",
+            "<center>&7<#B0B0B0>The Supply Crate disappeared before anyone broke it open.</center>",
+            ""));
     public List<SupplyReward> rewards = defaults();
 
     private static List<SupplyReward> defaults() {
@@ -66,6 +89,10 @@ public class SupplyCratesConf extends Entity<SupplyCratesConf> {
         requiredSolidDepth = Math.clamp(requiredSolidDepth, 1, 5);
         maximumNearbySlope = Math.clamp(maximumNearbySlope, 0, 2);
         if (hologram == null) hologram = new ArrayList<>();
+        if (spawnAnnouncement == null) spawnAnnouncement = new ArrayList<>();
+        if (joinReminder == null) joinReminder = new ArrayList<>();
+        if (claimedAnnouncement == null) claimedAnnouncement = new ArrayList<>();
+        if (expiredAnnouncement == null) expiredAnnouncement = new ArrayList<>();
         if (rewards == null) rewards = defaults();
         return this;
     }
